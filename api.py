@@ -11,7 +11,8 @@ import sys
 import time
 from typing import Any
 
-sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent))
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent / "src"))
 
 from fastapi import FastAPI, HTTPException, Depends, Security, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -20,7 +21,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
-from stack import MermicornStack
+from commerce_ai.stack import MermicornStack
 
 
 # ════════════════════════════════════════════════════════════════
