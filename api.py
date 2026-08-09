@@ -207,6 +207,228 @@ def ask_ai(req: dict, user: dict = Depends(verify_auth)):
 
 
 # ════════════════════════════════════════════════════════════════
+# MONITORING & METRICS
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/monitoring/metrics")
+def get_metrics():
+    """Prometheus-compatible metrics."""
+    from commerce_ai.monitoring import metrics
+    return JSONResponse(content=metrics.to_prometheus(), media_type="text/plain")
+
+
+@app.get("/api/monitoring/stats")
+def get_stats():
+    """Service stats."""
+    from commerce_ai.monitoring import metrics, logger
+    from commerce_ai.caching import cache
+    return {
+        "metrics": metrics.to_dict(),
+        "cache": cache.stats(),
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BACKUPS
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/backup/create")
+def create_backup(user: dict = Depends(verify_auth)):
+    from commerce_ai.backups import BackupManager
+    bm = BackupManager()
+    return bm.backup()
+
+
+@app.get("/api/backup/list")
+def list_backups(user: dict = Depends(verify_auth)):
+    from commerce_ai.backups import BackupManager
+    return {"backups": BackupManager().list_backups()}
+
+
+# ════════════════════════════════════════════════════════════════
+# SEARCH
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/search")
+def search(q: str = "", user: dict = Depends(verify_auth)):
+    from commerce_ai.search import search_engine
+    search_engine.index_all()
+    return {"query": q, "results": search_engine.search(q)}
+
+
+@app.get("/api/search/suggest")
+def suggest(q: str = ""):
+    from commerce_ai.search import search_engine
+    return {"suggestions": search_engine.suggest(q)}
+
+
+# ════════════════════════════════════════════════════════════════
+# EXPORT / IMPORT
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/export/json")
+def export_json(user: dict = Depends(verify_auth)):
+    from commerce_ai.export import export_service
+    return export_service.export_json(user["id"])
+
+
+@app.get("/api/export/csv/{table}")
+def export_csv(table: str, user: dict = Depends(verify_auth)):
+    from commerce_ai.export import export_service
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(export_service.export_csv(user["id"], table), media_type="text/csv")
+
+
+@app.post("/api/import/json")
+def import_json(data: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.export import export_service
+    return {"imported": export_service.import_json(user["id"], data)}
+
+
+# ════════════════════════════════════════════════════════════════
+# TEAMS & SHARING
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/teams")
+def create_team(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.teams import team_service
+    team = team_service.create_team(req["name"], user["id"])
+    return {"success": True, "team": {"id": team.id, "name": team.name}}
+
+
+@app.get("/api/teams")
+def list_teams(user: dict = Depends(verify_auth)):
+    from commerce_ai.teams import team_service
+    return {"teams": team_service.get_user_teams(user["id"])}
+
+
+@app.post("/api/teams/{team_id}/members")
+def add_team_member(team_id: str, req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.teams import team_service
+    success = team_service.add_member(team_id, req["user_id"], req.get("role", "member"))
+    return {"success": success}
+
+
+@app.post("/api/share")
+def share_resource(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.teams import team_service
+    share_id = team_service.share_resource(
+        user["id"], req["target_user_id"], req["resource_type"], req["resource_id"], req.get("permission", "view")
+    )
+    return {"success": True, "share_id": share_id}
+
+
+# ════════════════════════════════════════════════════════════════
+# WEBHOOKS
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/webhooks")
+def register_webhook(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.webhooks import webhook_service
+    wh = webhook_service.register(req["url"], req["events"], user["id"])
+    return {"success": True, "webhook": {"id": wh.id, "secret": wh.secret}}
+
+
+@app.get("/api/webhooks")
+def list_webhooks(user: dict = Depends(verify_auth)):
+    from commerce_ai.webhooks import webhook_service
+    return {"webhooks": webhook_service.list_webhooks(user["id"])}
+
+
+@app.get("/api/webhooks/events")
+def webhook_events():
+    from commerce_ai.webhooks import webhook_service
+    return {"events": webhook_service.get_recent_events()}
+
+
+# ════════════════════════════════════════════════════════════════
+# ANALYTICS
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/analytics/track")
+def track_event(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.analytics import analytics
+    analytics.track(req["event"], user["id"], req.get("properties"))
+    return {"success": True}
+
+
+@app.get("/api/analytics/summary")
+def analytics_summary(days: int = 7, user: dict = Depends(verify_auth)):
+    from commerce_ai.analytics import analytics
+    return analytics.get_summary(days)
+
+
+@app.get("/api/analytics/daily")
+def analytics_daily(days: int = 30):
+    from commerce_ai.analytics import analytics
+    return {"daily": analytics.get_daily_stats(days)}
+
+
+# ════════════════════════════════════════════════════════════════
+# NOTIFICATIONS
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/notify/deal")
+def notify_deal(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.notifications import email_service
+    result = email_service.deal_alert(
+        req["email"], req["destination"], req["price"], req["dates"], req.get("score", 0)
+    )
+    return result
+
+
+@app.post("/api/notify/price-drop")
+def notify_price_drop(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.notifications import email_service
+    result = email_service.price_drop(req["email"], req["item_name"], req["old_price"], req["new_price"])
+    return result
+
+
+@app.post("/api/push/subscribe")
+def push_subscribe(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.push import push_service, PushSubscription
+    sub = PushSubscription(endpoint=req["endpoint"], keys=req["keys"], user_id=user["id"])
+    push_service.subscribe(sub)
+    return {"success": True}
+
+
+@app.get("/api/push/vapid-key")
+def get_vapid_key():
+    from commerce_ai.push import push_service
+    return {"public_key": push_service.get_vapid_public_key()}
+
+
+@app.post("/api/push/send")
+def push_send(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.push import push_service
+    return push_service.send(req["title"], req["body"], req.get("url", "/"), req.get("data"))
+
+
+# ════════════════════════════════════════════════════════════════
+# EMAIL
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/email/welcome")
+def send_welcome(req: dict, user: dict = Depends(verify_auth)):
+    from commerce_ai.notifications import email_service
+    return email_service.welcome(req["email"], req["username"])
+
+
+# ════════════════════════════════════════════════════════════════
+# CACHE
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/cache/stats")
+def cache_stats():
+    from commerce_ai.caching import cache
+    return cache.stats()
+
+
+@app.post("/api/cache/clear")
+def cache_clear():
+    from commerce_ai.caching import cache
+    cache.clear()
+    return {"success": True}
 # NUMISMATIC ROUTES
 # ════════════════════════════════════════════════════════════════
 
