@@ -1,0 +1,26 @@
+{
+  "identity": {
+    "repository_id": "mermicorn-commerce-ai",
+    "display_name": "mermicorn-commerce-ai",
+    "owner": "cherry",
+    "lane": "ventures",
+    "visibility": "public",
+    "status": "foundation"
+  },
+  "current": {
+    "state": "SEEDED",
+    "implemented": false,
+    "tested": false,
+    "deployed": false
+  },
+  "target": {
+    "purpose": "[To be defined]",
+    "central_bottleneck": "[To be identified]"
+  },
+  "invariants": [],
+  "promotion": {
+    "required_tests": ["unit", "adversarial"],
+    "require_exact_source_sha": true,
+    "require_receipt": true
+  }
+}

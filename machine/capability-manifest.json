@@ -1,0 +1,10 @@
+{
+  "repository": "mermicorn-commerce-ai",
+  "version": "0.1.0",
+  "capabilities": [],
+  "provenance": {
+    "donors": ["mermicorn-token-saver", "mermicorn-graphic-ai", "mermicorn-commerce-ai"],
+    "consumers": [],
+    "created": "2026-08-08"
+  }
+}
