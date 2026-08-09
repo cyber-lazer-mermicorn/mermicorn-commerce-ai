@@ -518,14 +518,15 @@
             document.getElementById('ai-response').classList.remove('hidden');
             document.getElementById('ai-text').textContent = 'Thinking...';
             
-            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            // Use server-side AI endpoint (no hardcoded keys)
+            const res = await fetch(API + '/api/ai/ask', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer GROQ_KEY_PLACEHOLDER' },
-                body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: q }], max_tokens: 500 }),
+                headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+                body: JSON.stringify({ prompt: q, max_tokens: 500 }),
             });
             const data = await res.json();
             aiCalls++;
-            document.getElementById('ai-text').textContent = data.choices?.[0]?.message?.content || 'Error';
+            document.getElementById('ai-text').textContent = data.reasoning || data.data?.raw_text || JSON.stringify(data.data) || 'Error';
             document.getElementById('stat-ai').textContent = aiCalls;
         }
 

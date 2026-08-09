@@ -170,6 +170,43 @@ def get_me(user: dict = Depends(verify_auth)):
 
 
 # ════════════════════════════════════════════════════════════════
+# AI & MARKETPLACE CONFIG
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/config/ai")
+def get_ai_config():
+    """Get available AI providers (no secrets)."""
+    from commerce_ai.ai_providers import MermicornAI
+    ai = MermicornAI()
+    stats = ai.get_stats()
+    return {
+        "providers": [
+            {"name": p["name"], "available": p["available"], "free_tier": p["free_tier"], "models": p["models"]}
+            for p in stats["providers"]
+        ],
+        "active_count": sum(1 for p in stats["providers"] if p["available"]),
+    }
+
+
+@app.get("/api/config/marketplaces")
+def get_marketplace_status():
+    """Get connected marketplace status."""
+    from commerce_ai.marketplaces import MarketplaceManager
+    mgr = MarketplaceManager()
+    return {"marketplaces": mgr.get_status()}
+
+
+@app.post("/api/ai/ask")
+def ask_ai(req: dict, user: dict = Depends(verify_auth)):
+    """Ask AI a question."""
+    from commerce_ai.ai_providers import MermicornAI
+    ai = MermicornAI()
+    prompt = req.get("prompt", "")
+    result = ai.generate(prompt, max_tokens=req.get("max_tokens", 500))
+    return result.to_dict()
+
+
+# ════════════════════════════════════════════════════════════════
 # NUMISMATIC ROUTES
 # ════════════════════════════════════════════════════════════════
 
