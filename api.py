@@ -402,6 +402,13 @@ def startup():
 # DASHBOARD ROUTES
 # ════════════════════════════════════════════════════════════════
 
+@app.get("/app", response_class=HTMLResponse)
+def mobile_app():
+    """Mobile-first PWA app."""
+    from pathlib import Path
+    return Path(__file__).parent.joinpath("app.html").read_text()
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard():
     """Main dashboard — all verticals."""

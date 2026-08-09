@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Cherry App</title>
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { 
+            background: #0a0a0f; 
+            color: #e0e0e0; 
+            font-family: 'Inter', -apple-system, sans-serif;
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        
+        .slide-up { animation: slideUp 0.4s ease-out; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        
+        /* Cards */
+        .card { 
+            background: rgba(18, 18, 26, 0.8); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06); 
+            border-radius: 20px; 
+            transition: all 0.3s ease;
+        }
+        .card:active { transform: scale(0.98); }
+        
+        /* Glass effect */
+        .glass { 
+            background: rgba(255,255,255,0.03); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #a855f7, #ec4899, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Glow effects */
+        .glow-purple { box-shadow: 0 0 40px rgba(168,85,247,0.2); }
+        .glow-pink { box-shadow: 0 0 40px rgba(236,72,153,0.2); }
+        .glow-cyan { box-shadow: 0 0 40px rgba(6,182,212,0.2); }
+        
+        /* Buttons */
+        .btn {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .btn:hover::after { opacity: 1; }
+        
+        /* Bottom nav */
+        .nav-item { transition: all 0.2s; }
+        .nav-item.active { color: #a855f7; }
+        .nav-item.active .nav-icon { transform: scale(1.1); }
+        
+        /* Input */
+        input, textarea, select {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 12px !important;
+            padding: 14px 16px !important;
+            color: #fff !important;
+            font-size: 16px !important;
+            transition: all 0.2s;
+        }
+        input:focus, textarea:focus {
+            border-color: #a855f7 !important;
+            box-shadow: 0 0 0 3px rgba(168,85,247,0.2) !important;
+            outline: none;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        
+        /* Safe area */
+        .safe-bottom { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+        
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen safe-bottom">
+    <!-- App Container -->
+    <div id="app" class="max-w-lg mx-auto relative min-h-screen">
+        
+        <!-- Splash Screen -->
+        <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center" style="background: #0a0a0f;">
+            <div class="text-center slide-up">
+                <div class="text-7xl mb-4" style="animation: float 2s ease-in-out infinite;">🍒</div>
+                <h1 class="text-3xl font-black gradient-text">CHERRY</h1>
+                <p class="text-gray-500 text-sm mt-2">Your AI-Powered Apps</p>
+            </div>
+        </div>
+
+        <!-- Auth Screen -->
+        <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-6">
+            <div class="w-full max-w-sm slide-up">
+                <div class="text-center mb-8">
+                    <div class="text-6xl mb-4">🍒</div>
+                    <h1 class="text-2xl font-black gradient-text">Welcome</h1>
+                    <p class="text-gray-500 text-sm mt-1">Sign in to continue</p>
+                </div>
+                
+                <div class="card p-6">
+                    <div id="auth-login">
+                        <input id="auth-user" type="text" placeholder="Username" class="w-full mb-3">
+                        <input id="auth-pass" type="password" placeholder="Password" class="w-full mb-4">
+                        <button onclick="login()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 btn rounded-xl py-4 font-bold text-white">
+                            Sign In
+                        </button>
+                    </div>
+                    <div id="auth-register" class="hidden">
+                        <input id="reg-user" type="text" placeholder="Username" class="w-full mb-3">
+                        <input id="reg-email" type="email" placeholder="Email" class="w-full mb-3">
+                        <input id="reg-pass" type="password" placeholder="Password" class="w-full mb-4">
+                        <button onclick="register()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 btn rounded-xl py-4 font-bold text-white">
+                            Create Account
+                        </button>
+                    </div>
+                    
+                    <p class="text-center text-gray-500 text-sm mt-4">
+                        <span id="auth-toggle-text">Don't have an account?</span>
+                        <button onclick="toggleAuth()" class="text-purple-400 font-medium" id="auth-toggle-btn">Sign Up</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div id="main-app" class="hidden min-h-screen">
+            
+            <!-- Pages -->
+            <div id="page-home" class="page p-6 pt-12">
+                <div class="mb-8 slide-up">
+                    <p class="text-gray-500 text-sm">Good evening,</p>
+                    <h1 class="text-2xl font-bold" id="greeting-name">Cherry</h1>
+                </div>
+                
+                <!-- Hero Card -->
+                <div class="card p-6 mb-6 glow-purple slide-up" style="animation-delay: 0.1s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Your AI Assistant</p>
+                            <h2 class="text-xl font-bold mt-1">Ask me anything</h2>
+                        </div>
+                        <div class="text-4xl" style="animation: float 3s ease-in-out infinite;">🤖</div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <input id="ai-input" type="text" placeholder="What can I help with?" class="flex-1">
+                        <button onclick="askAI()" class="bg-purple-600 btn rounded-xl px-6">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI Response -->
+                <div id="ai-response" class="hidden card p-4 mb-6 fade-in">
+                    <p id="ai-text" class="text-sm"></p>
+                </div>
+                
+                <!-- Quick Actions -->
+                <h3 class="text-lg font-bold mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="showPage('shop')" class="card p-4 text-left slide-up" style="animation-delay: 0.2s">
+                        <div class="text-2xl mb-2">🛍️</div>
+                        <div class="font-semibold text-sm">Shop</div>
+                        <div class="text-gray-500 text-xs">Browse products</div>
+                    </button>
+                    <button onclick="showPage('camera')" class="card p-4 text-left slide-up" style="animation-delay: 0.25s">
+                        <div class="text-2xl mb-2">📷</div>
+                        <div class="font-semibold text-sm">Scan</div>
+                        <div class="text-gray-500 text-xs">Identify items</div>
+                    </button>
+                    <button onclick="showPage('deals')" class="card p-4 text-left slide-up" style="animation-delay: 0.3s">
+                        <div class="text-2xl mb-2">🔥</div>
+                        <div class="font-semibold text-sm">Deals</div>
+                        <div class="text-gray-500 text-xs">Find savings</div>
+                    </button>
+                    <button onclick="showPage('profile')" class="card p-4 text-left slide-up" style="animation-delay: 0.35s">
+                        <div class="text-2xl mb-2">⚡</div>
+                        <div class="font-semibold text-sm">Stats</div>
+                        <div class="text-gray-500 text-xs">Your activity</div>
+                    </button>
+                </div>
+                
+                <!-- Recent Activity -->
+                <h3 class="text-lg font-bold mb-4">Recent</h3>
+                <div id="recent-list" class="space-y-3">
+                    <div class="card p-4 flex items-center gap-4 fade-in">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-xl">🪙</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm">Morgan Dollar Added</div>
+                            <div class="text-gray-500 text-xs">1889 • VF-30 • $52</div>
+                        </div>
+                        <span class="text-green-400 text-xs">+$52</span>
+                    </div>
+                    <div class="card p-4 flex items-center gap-4 fade-in">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-xl">🚗</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm">Honda Civic Listed</div>
+                            <div class="text-gray-500 text-xs">2020 • 45k mi • $18,500</div>
+                        </div>
+                        <span class="text-gray-400 text-xs">Active</span>
+                    </div>
+                    <div class="card p-4 flex items-center gap-4 fade-in">
+                        <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-xl">✈️</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm">Hawaii Deal Found</div>
+                            <div class="text-gray-500 text-xs">Aug 15-22 • $299</div>
+                        </div>
+                        <span class="text-green-400 text-xs">9/10</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shop Page -->
+            <div id="page-shop" class="page hidden p-6 pt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="showPage('home')" class="text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1 class="text-xl font-bold">Shop</h1>
+                    <div class="w-6"></div>
+                </div>
+                
+                <div class="mb-6">
+                    <input type="text" placeholder="Search products..." class="w-full">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3" id="products-grid">
+                    <!-- Products loaded here -->
+                </div>
+            </div>
+
+            <!-- Camera Page -->
+            <div id="page-camera" class="page hidden p-6 pt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="showPage('home')" class="text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1 class="text-xl font-bold">AI Scanner</h1>
+                    <div class="w-6"></div>
+                </div>
+                
+                <div class="card p-8 text-center mb-6">
+                    <div class="text-6xl mb-4">📷</div>
+                    <p class="text-gray-400 mb-4">Point camera at an item</p>
+                    <p class="text-sm text-gray-500">AI will identify, grade, and value it</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <button class="w-full card p-4 flex items-center gap-4 text-left">
+                        <div class="text-2xl">🪙</div>
+                        <div>
+                            <div class="font-medium">Coin Scanner</div>
+                            <div class="text-gray-500 text-sm">Identify & grade coins</div>
+                        </div>
+                    </button>
+                    <button class="w-full card p-4 flex items-center gap-4 text-left">
+                        <div class="text-2xl">🚗</div>
+                        <div>
+                            <div class="font-medium">Vehicle Scanner</div>
+                            <div class="text-gray-500 text-sm">Identify & value cars</div>
+                        </div>
+                    </button>
+                    <button class="w-full card p-4 flex items-center gap-4 text-left">
+                        <div class="text-2xl">👗</div>
+                        <div>
+                            <div class="font-medium">Fashion Scanner</div>
+                            <div class="text-gray-500 text-sm">Analyze clothing design</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Deals Page -->
+            <div id="page-deals" class="page hidden p-6 pt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="showPage('home')" class="text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1 class="text-xl font-bold">Hot Deals</h1>
+                    <div class="w-6"></div>
+                </div>
+                
+                <div class="space-y-3" id="deals-list">
+                    <!-- Deals loaded here -->
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="page-profile" class="page hidden p-6 pt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="showPage('home')" class="text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1 class="text-xl font-bold">Profile</h1>
+                    <button onclick="logout()" class="text-red-400 text-sm">Logout</button>
+                </div>
+                
+                <div class="card p-6 text-center mb-6">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-3xl mx-auto mb-4">🍒</div>
+                    <h2 class="text-xl font-bold" id="profile-name">Cherry</h2>
+                    <p class="text-gray-500 text-sm" id="profile-email">cherry@mermicorn.dev</p>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-400" id="stat-items">0</div>
+                        <div class="text-gray-500 text-xs">Items</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-green-400" id="stat-value">$0</div>
+                        <div class="text-gray-500 text-xs">Value</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-2xl font-bold text-cyan-400" id="stat-ai">0</div>
+                        <div class="text-gray-500 text-xs">AI Calls</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="card p-4 flex items-center gap-3">
+                        <span>🌙</span>
+                        <span class="flex-1">Dark Mode</span>
+                        <div class="w-12 h-6 bg-purple-600 rounded-full relative">
+                            <div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+                        </div>
+                    </div>
+                    <div class="card p-4 flex items-center gap-3">
+                        <span>🔔</span>
+                        <span class="flex-1">Notifications</span>
+                        <div class="w-12 h-6 bg-gray-600 rounded-full relative">
+                            <div class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5"></div>
+                        </div>
+                    </div>
+                    <div class="card p-4 flex items-center gap-3">
+                        <span>🔑</span>
+                        <span class="flex-1">API Key</span>
+                        <span class="text-gray-500 text-sm" id="profile-key">mk_...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <nav class="fixed bottom-0 left-0 right-0 glass border-t border-white/5" style="padding-bottom: env(safe-area-inset-bottom);">
+                <div class="max-w-lg mx-auto flex justify-around py-3">
+                    <button onclick="showPage('home')" class="nav-item active flex flex-col items-center gap-1" data-page="home">
+                        <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <span class="text-xs">Home</span>
+                    </button>
+                    <button onclick="showPage('shop')" class="nav-item flex flex-col items-center gap-1" data-page="shop">
+                        <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <span class="text-xs">Shop</span>
+                    </button>
+                    <button onclick="showPage('camera')" class="nav-item flex flex-col items-center gap-1" data-page="camera">
+                        <div class="w-12 h-12 -mt-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="text-xs mt-1">Scan</span>
+                    </button>
+                    <button onclick="showPage('deals')" class="nav-item flex flex-col items-center gap-1" data-page="deals">
+                        <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path></svg>
+                        <span class="text-xs">Deals</span>
+                    </button>
+                    <button onclick="showPage('profile')" class="nav-item flex flex-col items-center gap-1" data-page="profile">
+                        <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="text-xs">Profile</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════
+        let API_KEY = localStorage.getItem('mermicorn_key') || '';
+        let USER = JSON.parse(localStorage.getItem('mermicorn_user') || 'null');
+        const API = window.location.origin;
+        let aiCalls = 0;
+
+        // ═══════════════════════════════════════════
+        // API
+        // ═══════════════════════════════════════════
+        async function api(method, path, body = null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY } };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(API + path, opts);
+            return res.json();
+        }
+
+        // ═══════════════════════════════════════════
+        // AUTH
+        // ═══════════════════════════════════════════
+        function toggleAuth() {
+            const login = document.getElementById('auth-login');
+            const register = document.getElementById('auth-register');
+            const text = document.getElementById('auth-toggle-text');
+            const btn = document.getElementById('auth-toggle-btn');
+            
+            if (login.classList.contains('hidden')) {
+                login.classList.remove('hidden');
+                register.classList.add('hidden');
+                text.textContent = "Don't have an account?";
+                btn.textContent = 'Sign Up';
+            } else {
+                login.classList.add('hidden');
+                register.classList.remove('hidden');
+                text.textContent = 'Already have an account?';
+                btn.textContent = 'Sign In';
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('auth-user').value;
+            const password = document.getElementById('auth-pass').value;
+            const res = await api('POST', '/auth/login', { username, password });
+            if (res.user) {
+                USER = res.user;
+                // Get API key from register or use existing
+                if (!API_KEY) {
+                    const reg = await api('POST', '/auth/register', { username, email: username+'@app.com', password });
+                    API_KEY = reg.user?.api_key || '';
+                }
+                localStorage.setItem('mermicorn_key', API_KEY);
+                localStorage.setItem('mermicorn_user', JSON.stringify(USER));
+                showApp();
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('reg-user').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-pass').value;
+            const res = await api('POST', '/auth/register', { username, email, password });
+            if (res.user) {
+                API_KEY = res.user.api_key;
+                USER = { username, email };
+                localStorage.setItem('mermicorn_key', API_KEY);
+                localStorage.setItem('mermicorn_user', JSON.stringify(USER));
+                showApp();
+            } else {
+                alert('Registration failed');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('mermicorn_key');
+            localStorage.removeItem('mermicorn_user');
+            API_KEY = '';
+            USER = null;
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+        }
+
+        // ═══════════════════════════════════════════
+        // NAVIGATION
+        // ═══════════════════════════════════════════
+        function showPage(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + name).classList.remove('hidden');
+            document.querySelector('[data-page="' + name + '"]')?.classList.add('active');
+            
+            if (name === 'home') loadData();
+            if (name === 'shop') loadProducts();
+            if (name === 'deals') loadDeals();
+        }
+
+        // ═══════════════════════════════════════════
+        // AI
+        // ═══════════════════════════════════════════
+        async function askAI() {
+            const q = document.getElementById('ai-input').value;
+            if (!q) return;
+            
+            document.getElementById('ai-response').classList.remove('hidden');
+            document.getElementById('ai-text').textContent = 'Thinking...';
+            
+            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer GROQ_KEY_PLACEHOLDER' },
+                body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: q }], max_tokens: 500 }),
+            });
+            const data = await res.json();
+            aiCalls++;
+            document.getElementById('ai-text').textContent = data.choices?.[0]?.message?.content || 'Error';
+            document.getElementById('stat-ai').textContent = aiCalls;
+        }
+
+        // ═══════════════════════════════════════════
+        // DATA
+        // ═══════════════════════════════════════════
+        async function loadData() {
+            if (!API_KEY) return;
+            const [products, coins, vehicles, deals] = await Promise.all([
+                api('GET', '/api/products'),
+                api('GET', '/api/coins'),
+                api('GET', '/api/vehicles'),
+                api('GET', '/api/deals'),
+            ]);
+            
+            const total = (products.products||[]).length + (coins.coins||[]).length + (vehicles.vehicles||[]).length;
+            document.getElementById('stat-items').textContent = total;
+        }
+
+        async function loadProducts() {
+            const res = await api('GET', '/api/products');
+            document.getElementById('products-grid').innerHTML = (res.products||[]).map(p => 
+                '<div class="card p-4 slide-up"><div class="aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl mb-3 flex items-center justify-center text-4xl">🛍️</div><div class="font-semibold text-sm">' + p.name + '</div><div class="text-purple-400 font-bold">$' + p.price + '</div></div>'
+            ).join('') || '<div class="col-span-2 text-center text-gray-500 py-8">No products yet</div>';
+        }
+
+        async function loadDeals() {
+            const res = await api('GET', '/api/deals');
+            document.getElementById('deals-list').innerHTML = (res.deals||[]).map(d => 
+                '<div class="card p-4 flex items-center gap-4 slide-up"><div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-xl">✈️</div><div class="flex-1"><div class="font-medium">' + d.destination + '</div><div class="text-gray-500 text-sm">' + d.dates + ' • ' + d.source + '</div></div><div class="text-green-400 font-bold">$' + d.price + '</div></div>'
+            ).join('') || '<div class="text-center text-gray-500 py-8">No deals yet</div>';
+        }
+
+        // ═══════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════
+        function showApp() {
+            document.getElementById('splash').classList.add('hidden');
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('greeting-name').textContent = USER?.username || 'Cherry';
+            document.getElementById('profile-name').textContent = USER?.username || 'Cherry';
+            document.getElementById('profile-key').textContent = API_KEY?.substring(0, 12) + '...';
+            loadData();
+        }
+
+        // Splash → Auth/App
+        setTimeout(() => {
+            document.getElementById('splash').classList.add('hidden');
+            if (API_KEY && USER) {
+                showApp();
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+            }
+        }, 1500);
+    </script>
+</body>
+</html>
