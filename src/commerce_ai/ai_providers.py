@@ -105,6 +105,7 @@ class GroqProvider(Provider):
         req = urllib.request.Request(url, data=payload, headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "MermicornAI/1.0",
         })
         
         try:
@@ -136,6 +137,7 @@ class MistralProvider(Provider):
         req = urllib.request.Request(url, data=payload, headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "MermicornAI/1.0",
         })
         
         try:
@@ -167,6 +169,7 @@ class DeepSeekProvider(Provider):
         req = urllib.request.Request(url, data=payload, headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "MermicornAI/1.0",
         })
         
         try:
@@ -199,6 +202,7 @@ class HuggingFaceProvider(Provider):
         req = urllib.request.Request(url, data=payload, headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "MermicornAI/1.0",
         })
         
         try:
@@ -408,6 +412,7 @@ class OpenAIProvider(Provider):
         req = urllib.request.Request(url, data=payload, headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "MermicornAI/1.0",
         })
         
         try:
