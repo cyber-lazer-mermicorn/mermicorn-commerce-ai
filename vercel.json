@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api.py",
+      "use": "@vercel/python",
+      "config": { "maxDuration": 30 }
+    },
+    {
+      "src": "dashboard.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "api.py" },
+    { "src": "/auth/(.*)", "dest": "api.py" },
+    { "src": "/stats", "dest": "api.py" },
+    { "src": "/health", "dest": "api.py" },
+    { "src": "/docs", "dest": "api.py" },
+    { "src": "/(.*)", "dest": "/dashboard.html" }
+  ]
+}

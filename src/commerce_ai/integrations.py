@@ -31,8 +31,9 @@ class ShopifyIntegration:
     """Shopify store integration."""
     
     def __init__(self, shop_url: str = "", access_token: str = ""):
-        self.shop_url = shop_url
-        self.access_token = access_token
+        self.shop_url = shop_url or os.environ.get("SHOPIFY_SHOP_URL", "")
+        self.access_token = access_token or os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
+        self.api_key = os.environ.get("SHOPIFY_API_KEY", "")
         self.products: list[Product] = []
     
     def create_product(self, product_data: dict[str, Any]) -> dict[str, Any]:
@@ -130,8 +131,10 @@ class EbayIntegration:
     """eBay seller integration."""
     
     def __init__(self, seller_id: str = "", api_key: str = ""):
-        self.seller_id = seller_id
-        self.api_key = api_key
+        self.seller_id = seller_id or os.environ.get("EBAY_SELLER_ID", "")
+        self.api_key = api_key or os.environ.get("EBAY_APP_ID", "")
+        self.cert_id = os.environ.get("EBAY_CERT_ID", "")
+        self.user_token = os.environ.get("EBAY_USER_TOKEN", "")
         self.listings: list[dict] = []
     
     def create_listing(self, product_data: dict[str, Any]) -> dict[str, Any]:
