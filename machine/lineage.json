@@ -1,0 +1,23 @@
+{
+  "repository": "mermicorn-commerce-ai",
+  "lineage": {
+    "family": "mermicorn-ventures",
+    "parents": [],
+    "donors": [
+      {"repository": "mermicorn-token-saver", "contribution": "token-efficiency"},
+      {"repository": "mermicorn-graphic-ai", "contribution": "visual-system"},
+      {"repository": "mermicorn-commerce-ai", "contribution": "commerce-engine"}
+    ],
+    "consumers": []
+  },
+  "lifecycle": {
+    "created": "2026-08-08",
+    "identity_resolved": "2026-08-08",
+    "problem_verified": "2026-08-08",
+    "target_contracted": "2026-08-08",
+    "seeded": "2026-08-08",
+    "vertical_slice": "2026-08-08",
+    "implemented": "2026-08-08",
+    "tested": "2026-08-08"
+  }
+}

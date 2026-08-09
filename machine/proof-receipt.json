@@ -1,0 +1,12 @@
+{
+  "repository": "mermicorn-commerce-ai",
+  "source_sha": "PLACEHOLDER",
+  "proof_id": "local-001",
+  "environment": {"python": "3.11+", "os": "linux"},
+  "tests": {
+    "unit": {"count": 3, "passed": 3, "failed": 0},
+    "adversarial": {"count": 2, "passed": 2, "failed": 0}
+  },
+  "result": "PASS",
+  "timestamp": "2026-08-08T00:00:00Z"
+}

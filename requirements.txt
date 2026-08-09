@@ -1,0 +1,6 @@
+# Core dependencies
+# (none required for base functionality)
+
+# Development
+pytest>=7.0
+ruff>=0.1.0
