@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  mermicorn-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MERMICORN_SECRET=${MERMICORN_SECRET:-change-me-in-production}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Add more services as needed:
+  # numismatic-api:
+  #   build: ../cherry-numismatic-auction-lab
+  #   ports: ["8001:8000"]
+  
+  # auto-api:
+  #   build: ../cherry-auto-matchmaker
+  #   ports: ["8002:8000"]
+
+  # travel-api:
+  #   build: ../cherry-travel-deal-lab
+  #   ports: ["8003:8000"]
