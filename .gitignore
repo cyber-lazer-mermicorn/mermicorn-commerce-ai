@@ -1,14 +1,41 @@
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Environments & secrets — never commit
 .env
+.env.*
+!.env.example
+!.env.template
 .venv/
 venv/
-output/
+
+# Runtime databases & local state
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+data/
+!data/.gitkeep
+mermicorn.db
+
+# Logs & local output
 *.log
+logs/
+output/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Compiled / caches already listed above
