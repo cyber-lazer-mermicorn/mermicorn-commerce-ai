@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import sys
 import time
+import json
 from typing import Any
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
@@ -560,12 +561,15 @@ def list_games(user: dict = Depends(verify_auth)):
 
 @app.post("/api/products")
 def add_product(req: ProductRequest, user: dict = Depends(verify_auth)):
-    stack = get_stack("commerce")
-    stack.db.execute(
-        "INSERT INTO products (id, name, price, description, tags, owner_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (str(time.time()), req.name, req.price, req.description, json.dumps(req.tags), user["id"], time.time())
-    )
-    return {"success": True, "product": req.dict()}
+    try:
+        stack = get_stack("commerce")
+        stack.db.execute(
+            "INSERT INTO products (id, name, price, description, tags, owner_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (str(time.time()), req.name, req.price, req.description, json.dumps(req.tags), user["id"], time.time())
+        )
+        return {"success": True, "product": getattr(req, "model_dump", req.dict)()}
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": str(e), "success": False})
 
 @app.get("/api/products")
 def list_products(user: dict = Depends(verify_auth)):
@@ -934,4 +938,5 @@ load();
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

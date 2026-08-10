@@ -7,6 +7,7 @@ Tests the complete request lifecycle.
 import os
 import sys
 import time
+import uuid
 import threading
 import urllib.request
 import json
@@ -24,11 +25,11 @@ def api_server():
     proc = subprocess.Popen(
         [sys.executable, "api.py"],
         cwd=str(__import__("pathlib").Path(__file__).parent.parent.parent),
-        env={**os.environ, "PORT": "9876"},
+        env={**os.environ, "PORT": "9876", "PYTHONPATH": "src"},
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    time.sleep(3)
+    time.sleep(4)
     yield API_BASE
     proc.terminate()
     proc.wait()
@@ -37,16 +38,25 @@ def api_server():
 def api_call(method, path, body=None, headers=None):
     """Make API call."""
     url = API_BASE + path
-    opts = {"method": method, "headers": headers or {}}
-    opts["headers"]["Content-Type"] = "application/json"
+    hdrs = headers or {}
+    data_bytes = None
     if body:
-        opts["body"] = json.dumps(body).encode()
-    req = urllib.request.Request(url, **opts)
+        hdrs["Content-Type"] = "application/json"
+        data_bytes = json.dumps(body).encode('utf-8')
+    req = urllib.request.Request(url, data=data_bytes, headers=hdrs, method=method)
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            return json.loads(resp.read()), resp.status
+            raw = resp.read().decode('utf-8')
+            try:
+                return json.loads(raw), resp.status
+            except Exception:
+                return raw, resp.status
     except urllib.error.HTTPError as e:
-        return json.loads(e.read()), e.code
+        raw = e.read().decode('utf-8')
+        try:
+            return json.loads(raw), e.code
+        except Exception:
+            return raw, e.code
 
 
 class TestHealthEndpoint:
@@ -100,7 +110,7 @@ class TestAuthFlow:
 class TestCRUDCoins:
     @pytest.fixture(autouse=True)
     def setup(self, api_server):
-        uname = f"coins_{int(time.time())}"
+        uname = f"coins_{uuid.uuid4().hex[:8]}"
         reg, _ = api_call("POST", "/auth/register", {
             "username": uname, "email": f"{uname}@t.com", "password": "pass123"
         })
@@ -136,7 +146,7 @@ class TestCRUDCoins:
 class TestCRUDVehicles:
     @pytest.fixture(autouse=True)
     def setup(self, api_server):
-        uname = f"cars_{int(time.time())}"
+        uname = f"cars_{uuid.uuid4().hex[:8]}"
         reg, _ = api_call("POST", "/auth/register", {
             "username": uname, "email": f"{uname}@t.com", "password": "pass123"
         })
@@ -161,7 +171,7 @@ class TestCRUDVehicles:
 class TestCRUDDeals:
     @pytest.fixture(autouse=True)
     def setup(self, api_server):
-        uname = f"deals_{int(time.time())}"
+        uname = f"deals_{uuid.uuid4().hex[:8]}"
         reg, _ = api_call("POST", "/auth/register", {
             "username": uname, "email": f"{uname}@t.com", "password": "pass123"
         })
@@ -186,7 +196,7 @@ class TestCRUDDeals:
 class TestCRUDChampions:
     @pytest.fixture(autouse=True)
     def setup(self, api_server):
-        uname = f"rift_{int(time.time())}"
+        uname = f"rift_{uuid.uuid4().hex[:8]}"
         reg, _ = api_call("POST", "/auth/register", {
             "username": uname, "email": f"{uname}@t.com", "password": "pass123"
         })
@@ -204,18 +214,19 @@ class TestCRUDChampions:
 class TestCRUDProducts:
     @pytest.fixture(autouse=True)
     def setup(self, api_server):
-        uname = f"shop_{int(time.time())}"
+        uname = f"shop_{uuid.uuid4().hex[:8]}"
         reg, _ = api_call("POST", "/auth/register", {
             "username": uname, "email": f"{uname}@t.com", "password": "pass123"
         })
         self.key = reg["user"]["api_key"]
+        self.headers = {"X-API-Key": self.key}
         self.headers = {"X-API-Key": self.key}
 
     def test_add_product(self, api_server):
         data, status = api_call("POST", "/api/products", {
             "name": "Neon Top", "price": 89.99, "description": "UV reactive", "tags": ["rave"]
         }, headers=self.headers)
-        assert status == 200
+        assert status == 200, f"Got status {status}: {data}"
         assert data["success"] is True
 
 
