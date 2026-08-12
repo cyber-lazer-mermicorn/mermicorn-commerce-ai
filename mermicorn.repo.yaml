@@ -3,7 +3,7 @@ schema_version: "1.0"
 id: mermicorn-commerce-ai
 display_name: Mermicorn Commerce AI
 owner: cherry
-lane: core
+lane: ai-core
 visibility: public
 status: foundation
 
