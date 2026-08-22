@@ -1,12 +1,11 @@
 """Unit tests for mermicorn-commerce-ai."""
 
-import pytest
-
 
 class TestCore:
     def test_import(self):
         """Test that core module can be imported."""
         import sys
+
         sys.path.insert(0, "src")
         # Module should be importable
         assert True

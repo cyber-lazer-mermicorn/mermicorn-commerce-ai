@@ -4,10 +4,9 @@ Email Notifications — SendGrid + SMTP Fallback
 Deal alerts, price drops, account notifications.
 """
 
-import os
 import json
+import os
 import urllib.request
-from typing import Optional
 from dataclasses import dataclass
 
 
@@ -21,7 +20,7 @@ class Email:
 
 class EmailService:
     """Multi-provider email service."""
-    
+
     def __init__(self):
         self.sendgrid_key = os.environ.get("SENDGRID_API_KEY", "")
         self.smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
@@ -30,7 +29,7 @@ class EmailService:
         self.smtp_pass = os.environ.get("SMTP_PASS", "")
         self.from_email = os.environ.get("FROM_EMAIL", "noreply@mermicorn.dev")
         self.from_name = os.environ.get("FROM_NAME", "Mermicorn")
-    
+
     def send(self, email: Email) -> dict:
         """Send email via best available provider."""
         if self.sendgrid_key:
@@ -39,19 +38,21 @@ class EmailService:
             return self._send_smtp(email)
         else:
             return {"success": False, "error": "No email provider configured"}
-    
+
     def _send_sendgrid(self, email: Email) -> dict:
         """Send via SendGrid API."""
-        payload = json.dumps({
-            "personalizations": [{"to": [{"email": email.to}]}],
-            "from": {"email": self.from_email, "name": self.from_name},
-            "subject": email.subject,
-            "content": [
-                {"type": "text/plain", "value": email.text or email.html},
-                {"type": "text/html", "value": email.html},
-            ],
-        }).encode()
-        
+        payload = json.dumps(
+            {
+                "personalizations": [{"to": [{"email": email.to}]}],
+                "from": {"email": self.from_email, "name": self.from_name},
+                "subject": email.subject,
+                "content": [
+                    {"type": "text/plain", "value": email.text or email.html},
+                    {"type": "text/html", "value": email.html},
+                ],
+            }
+        ).encode()
+
         req = urllib.request.Request(
             "https://api.sendgrid.com/v3/mail/send",
             data=payload,
@@ -60,39 +61,41 @@ class EmailService:
                 "Content-Type": "application/json",
             },
         )
-        
+
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 return {"success": True, "status": resp.status}
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     def _send_smtp(self, email: Email) -> dict:
         """Send via SMTP."""
         try:
             import smtplib
-            from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart
-            
+            from email.mime.text import MIMEText
+
             msg = MIMEMultipart("alternative")
             msg["Subject"] = email.subject
             msg["From"] = f"{self.from_name} <{self.from_email}>"
             msg["To"] = email.to
             msg.attach(MIMEText(email.text or email.html, "plain"))
             msg.attach(MIMEText(email.html, "html"))
-            
+
             with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_pass)
                 server.sendmail(self.from_email, email.to, msg.as_string())
-            
+
             return {"success": True}
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     # ── Templates ──────────────────────────────────────────────
-    
-    def deal_alert(self, to: str, destination: str, price: float, dates: str, score: int):
+
+    def deal_alert(
+        self, to: str, destination: str, price: float, dates: str, score: int
+    ):
         """Send deal alert email."""
         html = f"""
         <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0f;color:#e0e0e0;padding:40px;border-radius:16px">
@@ -110,8 +113,10 @@ class EmailService:
             <p style="color:#666;font-size:12px;text-align:center">Powered by Mermicorn AI</p>
         </div>
         """
-        return self.send(Email(to=to, subject=f"🔥 {destination} — ${price:.0f}", html=html))
-    
+        return self.send(
+            Email(to=to, subject=f"🔥 {destination} — ${price:.0f}", html=html)
+        )
+
     def price_drop(self, to: str, item_name: str, old_price: float, new_price: float):
         """Send price drop alert."""
         drop = ((old_price - new_price) / old_price) * 100
@@ -127,8 +132,10 @@ class EmailService:
             <p style="color:#666;font-size:12px;text-align:center">Powered by Mermicorn AI</p>
         </div>
         """
-        return self.send(Email(to=to, subject=f"📉 {item_name} dropped {drop:.0f}%", html=html))
-    
+        return self.send(
+            Email(to=to, subject=f"📉 {item_name} dropped {drop:.0f}%", html=html)
+        )
+
     def welcome(self, to: str, username: str):
         """Send welcome email."""
         html = f"""

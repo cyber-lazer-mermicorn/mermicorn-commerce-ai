@@ -6,7 +6,6 @@ Shopify, Etsy, Amazon, eBay integrations.
 
 from __future__ import annotations
 
-import json
 import os
 import time
 from dataclasses import dataclass, field
@@ -16,6 +15,7 @@ from typing import Any
 @dataclass(slots=True)
 class Product:
     """A product for sale."""
+
     id: str
     name: str
     description: str
@@ -29,13 +29,13 @@ class Product:
 
 class ShopifyIntegration:
     """Shopify store integration."""
-    
+
     def __init__(self, shop_url: str = "", access_token: str = ""):
         self.shop_url = shop_url or os.environ.get("SHOPIFY_SHOP_URL", "")
         self.access_token = access_token or os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
         self.api_key = os.environ.get("SHOPIFY_API_KEY", "")
         self.products: list[Product] = []
-    
+
     def create_product(self, product_data: dict[str, Any]) -> dict[str, Any]:
         """Create product on Shopify."""
         product = Product(
@@ -48,7 +48,7 @@ class ShopifyIntegration:
             images=product_data.get("images", []),
         )
         self.products.append(product)
-        
+
         return {
             "id": product.id,
             "title": product.name,
@@ -57,12 +57,12 @@ class ShopifyIntegration:
             "tags": ", ".join(product.tags),
             "status": "active",
         }
-    
+
     def generate_seo(self, product_data: dict[str, Any]) -> dict[str, str]:
         """Generate SEO data for Shopify."""
         name = product_data.get("name", "")
         desc = product_data.get("description", "")
-        
+
         return {
             "title": f"{name} | Cherry Rave Wear",
             "description": desc[:160],
@@ -74,12 +74,12 @@ class ShopifyIntegration:
 
 class EtsyIntegration:
     """Etsy shop integration."""
-    
+
     def __init__(self, shop_id: str = "", api_key: str = ""):
         self.shop_id = shop_id
         self.api_key = api_key
         self.listings: list[dict] = []
-    
+
     def create_listing(self, product_data: dict[str, Any]) -> dict[str, Any]:
         """Create listing on Etsy."""
         listing = {
@@ -94,22 +94,29 @@ class EtsyIntegration:
         }
         self.listings.append(listing)
         return listing
-    
+
     def generate_etsy_tags(self, product_data: dict[str, Any]) -> list[str]:
         """Generate optimized Etsy tags."""
         base = product_data.get("tags", [])
-        etsy_specific = ["rave", "festival", "UV reactive", "handmade", "unique", "gift"]
+        etsy_specific = [
+            "rave",
+            "festival",
+            "UV reactive",
+            "handmade",
+            "unique",
+            "gift",
+        ]
         return list(set(base + etsy_specific))[:13]
 
 
 class AmazonIntegration:
     """Amazon seller integration."""
-    
+
     def __init__(self, seller_id: str = "", api_key: str = ""):
         self.seller_id = seller_id
         self.api_key = api_key
         self.listings: list[dict] = []
-    
+
     def create_listing(self, product_data: dict[str, Any]) -> dict[str, Any]:
         """Create Amazon listing."""
         listing = {
@@ -129,14 +136,14 @@ class AmazonIntegration:
 
 class EbayIntegration:
     """eBay seller integration."""
-    
+
     def __init__(self, seller_id: str = "", api_key: str = ""):
         self.seller_id = seller_id or os.environ.get("EBAY_SELLER_ID", "")
         self.api_key = api_key or os.environ.get("EBAY_APP_ID", "")
         self.cert_id = os.environ.get("EBAY_CERT_ID", "")
         self.user_token = os.environ.get("EBAY_USER_TOKEN", "")
         self.listings: list[dict] = []
-    
+
     def create_listing(self, product_data: dict[str, Any]) -> dict[str, Any]:
         """Create eBay listing."""
         listing = {
@@ -151,7 +158,7 @@ class EbayIntegration:
         }
         self.listings.append(listing)
         return listing
-    
+
     def calculate_fees(self, price: float) -> dict[str, float]:
         """Calculate eBay fees."""
         final_value_fee = price * 0.13
@@ -168,29 +175,29 @@ class EbayIntegration:
 class MultiMarketplace:
     """
     Unified multi-marketplace integration.
-    
+
     List once, sell everywhere.
     """
-    
+
     def __init__(self):
         self.shopify = ShopifyIntegration()
         self.etsy = EtsyIntegration()
         self.amazon = AmazonIntegration()
         self.ebay = EbayIntegration()
         self.all_listings: list[dict] = []
-    
+
     def list_everywhere(self, product_data: dict[str, Any]) -> dict[str, Any]:
         """List product on all marketplaces."""
         results = {}
-        
+
         results["shopify"] = self.shopify.create_product(product_data)
         results["etsy"] = self.etsy.create_listing(product_data)
         results["amazon"] = self.amazon.create_listing(product_data)
         results["ebay"] = self.ebay.create_listing(product_data)
-        
+
         self.all_listings.append(results)
         return results
-    
+
     def get_stats(self) -> dict[str, Any]:
         return {
             "shopify": len(self.shopify.products),

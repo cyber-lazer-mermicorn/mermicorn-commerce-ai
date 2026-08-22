@@ -1,7 +1,5 @@
 """Adversarial tests for edge cases."""
 
-import pytest
-
 
 class TestAdversarial:
     def test_empty_input(self):

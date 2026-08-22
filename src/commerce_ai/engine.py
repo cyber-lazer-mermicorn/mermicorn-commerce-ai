@@ -7,17 +7,16 @@ Turns product data into market-ready listings.
 from __future__ import annotations
 
 import hashlib
-import json
-import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass(slots=True)
 class Product:
     """A product to be listed."""
+
     id: str
     name: str
     description: str
@@ -28,7 +27,7 @@ class Product:
     features: list[str] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -46,6 +45,7 @@ class Product:
 @dataclass(slots=True)
 class Listing:
     """A market-ready listing."""
+
     product: Product
     title: str
     headline: str
@@ -55,11 +55,11 @@ class Listing:
     formatted_price: str
     cta: str = "Shop Now"
     created_at: float = field(default_factory=time.time)
-    
+
     def to_html(self) -> str:
         """Generate HTML for this listing."""
         bullets_html = "".join(f"<li>{b}</li>" for b in self.bullets)
-        
+
         return f"""<article class="listing" data-marketplace="{self.marketplace}">
   <header>
     <h2>{self.title}</h2>
@@ -75,20 +75,20 @@ class Listing:
 class CommerceAI:
     """
     Mermicorn Commerce Engine
-    
+
     Product pipeline:
     1. Intake product data
     2. Generate optimized listings
     3. Format for marketplaces
     4. Track performance
     """
-    
+
     def __init__(self, output_dir: str = "./output"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.products: list[Product] = []
         self.listings: list[Listing] = []
-    
+
     def add_product(
         self,
         name: str,
@@ -102,7 +102,7 @@ class CommerceAI:
         product_id = hashlib.sha256(
             f"{name}:{description}:{price}".encode()
         ).hexdigest()[:12]
-        
+
         product = Product(
             id=product_id,
             name=name,
@@ -114,7 +114,7 @@ class CommerceAI:
         )
         self.products.append(product)
         return product
-    
+
     def generate_listing(
         self,
         product: Product,
@@ -122,24 +122,30 @@ class CommerceAI:
     ) -> Listing:
         """Generate an optimized listing for a product."""
         # Generate SEO-optimized title
-        title = f"{product.name} — {product.category}" if product.category else product.name
-        
+        title = (
+            f"{product.name} — {product.category}" if product.category else product.name
+        )
+
         # Generate headline
         headline = f"Premium {product.name} for the modern lifestyle"
-        
+
         # Generate bullets from features
-        bullets = product.features[:5] if product.features else [
-            f"High-quality {product.name}",
-            "Fast shipping & easy returns",
-            "Cherry-approved quality",
-        ]
-        
+        bullets = (
+            product.features[:5]
+            if product.features
+            else [
+                f"High-quality {product.name}",
+                "Fast shipping & easy returns",
+                "Cherry-approved quality",
+            ]
+        )
+
         # SEO description
         seo = f"{product.name}: {product.description[:150]}"
-        
+
         # Format price
         formatted = f"${product.price:.2f}"
-        
+
         listing = Listing(
             product=product,
             title=title,
@@ -151,12 +157,12 @@ class CommerceAI:
         )
         self.listings.append(listing)
         return listing
-    
+
     def export_listing(self, listing: Listing) -> str:
         """Export a listing to HTML file."""
         filename = f"listing-{listing.product.id}.html"
         filepath = self.output_dir / filename
-        
+
         html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -182,10 +188,10 @@ class CommerceAI:
 {listing.to_html()}
 </body>
 </html>"""
-        
+
         filepath.write_text(html)
         return str(filepath)
-    
+
     def generate_catalog(self) -> str:
         """Generate a full product catalog."""
         items = ""
@@ -196,7 +202,7 @@ class CommerceAI:
       <p class="price">{listing.formatted_price}</p>
       <p>{listing.headline}</p>
     </div>"""
-        
+
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -219,7 +225,7 @@ class CommerceAI:
     </div>
 </body>
 </html>"""
-    
+
     def get_stats(self) -> dict[str, Any]:
         """Get commerce statistics."""
         return {
@@ -233,9 +239,9 @@ class CommerceAI:
 # Standalone usage
 if __name__ == "__main__":
     commerce = CommerceAI()
-    
+
     print("🛒 Mermicorn Commerce AI")
-    
+
     # Add sample products
     p1 = commerce.add_product(
         name="Cherry Rave Top",
@@ -244,7 +250,7 @@ if __name__ == "__main__":
         category="Ravewear",
         features=["UV-reactive fabric", "Breathable mesh", "LED pocket"],
     )
-    
+
     p2 = commerce.add_product(
         name="Mermicorn Pendant",
         description="Sterling silver mermaid unicorn pendant",
@@ -252,15 +258,15 @@ if __name__ == "__main__":
         category="Jewelry",
         features=["925 sterling silver", "Handcrafted", "Gift box included"],
     )
-    
+
     # Generate listings
     listing1 = commerce.generate_listing(p1, "shopify")
     listing2 = commerce.generate_listing(p2, "etsy")
-    
+
     # Export
     commerce.export_listing(listing1)
     commerce.export_listing(listing2)
-    
+
     print(f"   Products: {commerce.get_stats()['products']}")
     print(f"   Listings: {commerce.get_stats()['listings']}")
     print(f"   Total Value: ${commerce.get_stats()['total_value']:.2f}")

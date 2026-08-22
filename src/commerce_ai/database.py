@@ -5,32 +5,29 @@ Uses PostgreSQL when DATABASE_URL is set, falls back to SQLite.
 """
 
 import os
-import json
-import time
-import uuid
 import sqlite3
-from typing import Any, Optional
-from pathlib import Path
+from typing import Any
 
 
 class Database:
     """Unified database interface — PostgreSQL or SQLite."""
-    
+
     def __init__(self, db_path: str = "mermicorn.db"):
         self.database_url = os.environ.get("DATABASE_URL", "")
         self.db_path = db_path
         self._pg = None
         self._sqlite = None
-        
+
         if self.database_url and "postgresql" in self.database_url:
             self._init_pg()
         else:
             self._init_sqlite()
-    
+
     def _init_pg(self):
         """Initialize PostgreSQL connection."""
         try:
             import psycopg2
+
             self._pg = psycopg2.connect(self.database_url)
             self._pg.autocommit = True
             self._create_pg_tables()
@@ -40,13 +37,13 @@ class Database:
         except Exception as e:
             print(f"⚠️  PostgreSQL connection failed: {e}, falling back to SQLite")
             self._init_sqlite()
-    
+
     def _init_sqlite(self):
         """Initialize SQLite connection."""
         self._sqlite = sqlite3.connect(self.db_path)
         self._sqlite.row_factory = sqlite3.Row
         self._create_sqlite_tables()
-    
+
     def _create_pg_tables(self):
         """Create PostgreSQL tables."""
         cur = self._pg.cursor()
@@ -73,7 +70,7 @@ class Database:
             elif table == "products":
                 cols = "id TEXT PRIMARY KEY, name TEXT, price REAL, description TEXT, tags TEXT, owner_id TEXT, created_at REAL"
             cur.execute(f"CREATE TABLE IF NOT EXISTS {table} ({cols})")
-    
+
     def _create_sqlite_tables(self):
         """Create SQLite tables."""
         cur = self._sqlite.cursor()
@@ -82,7 +79,7 @@ class Database:
             password_hash TEXT, api_key TEXT UNIQUE, role TEXT DEFAULT 'user',
             created_at REAL)""")
         self._sqlite.commit()
-    
+
     def execute(self, query: str, params: tuple = ()) -> Any:
         """Execute a query."""
         if self._pg:
@@ -98,8 +95,8 @@ class Database:
             if cur.description:
                 return cur.fetchall()
             return cur.rowcount
-    
-    def fetchone(self, query: str, params: tuple = ()) -> Optional[dict]:
+
+    def fetchone(self, query: str, params: tuple = ()) -> dict | None:
         """Fetch one row."""
         if self._pg:
             cur = self._pg.cursor()
@@ -115,7 +112,7 @@ class Database:
             if row:
                 return dict(row)
             return None
-    
+
     def fetchall(self, query: str, params: tuple = ()) -> list[dict]:
         """Fetch all rows."""
         if self._pg:
@@ -127,11 +124,11 @@ class Database:
             cur = self._sqlite.cursor()
             cur.execute(query, params)
             return [dict(row) for row in cur.fetchall()]
-    
+
     def commit(self):
         if self._sqlite:
             self._sqlite.commit()
-    
+
     def close(self):
         if self._pg:
             self._pg.close()
