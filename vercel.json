@@ -7,7 +7,11 @@
       "config": { "maxDuration": 30 }
     },
     {
-      "src": "dashboard.html",
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "app.html",
       "use": "@vercel/static"
     }
   ],
@@ -17,6 +21,8 @@
     { "src": "/stats", "dest": "api.py" },
     { "src": "/health", "dest": "api.py" },
     { "src": "/docs", "dest": "api.py" },
-    { "src": "/(.*)", "dest": "/dashboard.html" }
+    { "src": "/app/?", "dest": "/app.html" },
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

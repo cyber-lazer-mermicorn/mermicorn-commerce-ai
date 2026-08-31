@@ -1,19 +1,23 @@
-# Status
+# Status — mermicorn-commerce-ai
 
-**State:** BUILDING (hygiene pass applied)  
-**Last updated:** 2026-08-09
+**State:** PUBLIC SURFACE MAXIMIZED / API FOUNDATION EXISTS  
+**Last updated:** 2026-08-30  
+**URL:** https://commerce.lazermermicorn.com
 
-## P0 complete on main
-- Hardened `.gitignore` (`.env*`, `*.db*`, `data/`, caches)
-- Removed `.env.ai`, `mermicorn.db`, and all tracked `data/*.db*` from tree
-- Left `data/.gitkeep` so the directory exists without runtime files
-- SECURITY.md updated with rotate/history guidance
+## Shipped this pass
+
+- Cinematic `index.html` public spine (loop, vertical lilypads, honesty panel)
+- Fixed `vercel.json`: was routing to missing `dashboard.html` — now `index.html` + `/app` → `app.html`
+- Operator app remains at `/app`
 
 ## Still true
-- Large Python commerce stack exists (`api.py`, `src/commerce_ai/*`, Docker/deploy configs)
-- Public code only; private data stays local or vaulted
 
-## Operator TODO
-1. Rotate any real keys if they were ever present outside placeholders
-2. Optional: history rewrite to purge old blobs
-3. Keep using `.env.template` + GitHub Secrets only
+- Large Python stack (`api.py`, `src/commerce_ai/*`) for products/coins/vehicles/deals
+- Public code only; operational data private
+- Does not auto-post to marketplaces or charge without human + credentials
+
+## Next proof
+
+1. One vertical product → full multichannel package artifact
+2. Wire Stripe/Resend only via env when ready
+3. Rate-limit write APIs in production
